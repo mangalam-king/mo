@@ -73,5 +73,75 @@ $("resultForm").addEventListener("submit",async e=>{e.preventDefault();let f=Obj
 $("noticeForm").addEventListener("submit",async e=>{e.preventDefault();let f=Object.fromEntries(new FormData(e.target));await addDoc(collection(db,"announcements"),{...f,date:new Date().toLocaleDateString("en-IN")});e.target.reset();renderNotices()});
 async function renderNotices(){let e=$("noticeAdmin"),s=await getDocs(collection(db,"announcements"));e.innerHTML=s.docs.map(d=>{let x=d.data();return `<div class="notice"><b>${esc(x.type)}:</b> ${esc(x.text)} <button class="smallbtn" onclick="deleteNotice('${d.id}')">Delete</button></div>`}).join("")||'<p class="muted">No announcements.</p>'}
 window.deleteNotice=async id=>{await deleteDoc(doc(db,"announcements",id));renderNotices()};
-$("settingsForm").addEventListener("submit",async e=>{e.preventDefault();let f=Object.fromEntries(new FormData(e.target));await setDoc(doc(db,"settings","olympiad"),f);$("settingsMsg").innerHTML='<div class="success">Olympiad settings saved.</div>'});
-async function loadSettings(){let s=await getDocs(query(collection(db,"settings"),where("__name__","==","olympiad")));if(!s.empty){let x=s.docs[0].data(),f=$("settingsForm");for(const k in x)if(f.elements[k])f.elements[k].value=x[k]||""}}
+$("settingsForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const form = e.currentTarget;
+  const button = form.querySelector('button[type="submit"]');
+  const msg = $("settingsMsg");
+
+  if (button) {
+    button.disabled = true;
+    button.textContent = "Saving...";
+  }
+  msg.innerHTML = "";
+
+  try {
+    const f = Object.fromEntries(new FormData(form));
+
+    if (!f.examDate) throw new Error("Please select the exam date.");
+    if (!f.startTime) throw new Error("Please select the exam start time.");
+    if (!f.endTime) throw new Error("Please select the exam end time.");
+    if (!f.examCentre.trim()) throw new Error("Please enter the exam place / centre.");
+
+    if (f.startTime >= f.endTime) {
+      throw new Error("End time must be later than start time.");
+    }
+
+    if (f.duration && Number(f.duration) <= 0) {
+      throw new Error("Exam duration must be greater than 0.");
+    }
+
+    const settings = {
+      examDate: f.examDate,
+      startTime: f.startTime,
+      endTime: f.endTime,
+      duration: f.duration || "",
+      examCentre: f.examCentre.trim(),
+      centreAddress: (f.centreAddress || "").trim(),
+      instructions: (f.instructions || "").trim(),
+      officialNotice: (f.officialNotice || "").trim(),
+      updatedAt: new Date().toISOString()
+    };
+
+    await setDoc(doc(db, "settings", "olympiad"), settings);
+
+    msg.innerHTML = `
+      <div class="success">
+        <b>✓ Exam schedule saved successfully.</b><br>
+        Students will see the updated date, time and centre on their admit cards.
+      </div>`;
+
+    await loadSettings();
+
+  } catch (err) {
+    console.error("Exam schedule save error:", err);
+
+    let text = err?.message || String(err);
+
+    if (err?.code === "permission-denied") {
+      text = "Permission denied. Make sure you are signed in with the authorized Google admin account and publish the latest Firestore rules.";
+    } else if (err?.code === "unauthenticated") {
+      text = "Admin session expired. Sign in with Google again.";
+    } else if (err?.code === "failed-precondition") {
+      text = "Firestore is not enabled/configured for this project.";
+    }
+
+    msg.innerHTML = `<div class="error"><b>Schedule was not saved.</b><br>${text}</div>`;
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.textContent = "💾 Save / Update Exam Schedule";
+    }
+  }
+});
