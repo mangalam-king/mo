@@ -1,22 +1,18 @@
-import { db, doc, setDoc, getDoc } from "./firebase.js";
+import { db, doc, setDoc } from "./firebase.js";
 
 const form = document.getElementById("registrationForm");
 const success = document.getElementById("regSuccess");
 
-function makeRegistrationId() {
-  const year = new Date().getFullYear();
-  const number = Math.floor(1000 + Math.random() * 9000);
-  return `MO${year}${number}`;
+function makeId() {
+  return "MO" + new Date().getFullYear() + Math.floor(10000 + Math.random() * 90000);
 }
 
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
+form.addEventListener("submit", async (event) => {
+  event.preventDefault();
 
   const button = form.querySelector('button[type="submit"]');
-  if (button) {
-    button.disabled = true;
-    button.textContent = "Submitting...";
-  }
+  button.disabled = true;
+  button.textContent = "Submitting...";
   success.innerHTML = "";
 
   try {
@@ -24,62 +20,47 @@ form.addEventListener("submit", async (e) => {
     const mobile = String(data.mobile || "").replace(/\D/g, "");
 
     if (mobile.length !== 10) {
-      throw new Error("Please enter a valid 10-digit mobile number.");
+      throw new Error("Enter a valid 10-digit mobile number.");
     }
 
-    let id = makeRegistrationId();
-    let reference = doc(db, "registrations", id);
-    let existing = await getDoc(reference);
+    const id = makeId();
 
-    // Very unlikely collision protection.
-    while (existing.exists()) {
-      id = makeRegistrationId();
-      reference = doc(db, "registrations", id);
-      existing = await getDoc(reference);
-    }
-
-    const record = {
-      ...data,
-      mobile,
+    // Create the document directly. No read/query is needed.
+    await setDoc(doc(db, "registrations", id), {
       id,
+      name: data.name.trim(),
+      class: data.class,
+      school: data.school.trim(),
+      mobile,
+      parent: data.parent.trim(),
+      city: data.city.trim(),
+      email: data.email?.trim() || "",
       status: "Pending",
-      date: new Date().toLocaleDateString("en-IN")
-    };
+      date: new Date().toISOString()
+    });
 
-    await setDoc(reference, record);
-
-    success.innerHTML = `
-      <div class="success">
-        <b>Registration successful!</b><br>
-        Your Registration ID is
-        <strong style="font-size:20px">${id}</strong><br>
-        Save this ID. You will need it for login, admit card and result.
-      </div>`;
-
+    success.innerHTML = `<div class="success">
+      <b>Registration submitted successfully! 🎉</b><br>
+      Registration ID: <strong style="font-size:22px">${id}</strong><br>
+      Please save this ID for login, admit card and result.
+    </div>`;
     form.reset();
+  } catch (error) {
+    console.error(error);
+    let message = error.message || "Unknown Firebase error.";
+    if (error.code === "permission-denied")
+      message = "Firestore rejected the request. Publish firestore.rules.txt and make sure the registrations collection allows create.";
+    else if (error.code === "failed-precondition")
+      message = "Firestore is not enabled. Create Firestore Database in Firebase Console.";
+    else if (error.code === "unavailable")
+      message = "Firebase is unavailable. Check your internet connection.";
 
-  } catch (err) {
-    console.error("MO Olympiad registration error:", err);
-
-    let message = err?.message || String(err);
-
-    if (err?.code === "permission-denied") {
-      message = "Firestore permission denied. Publish the included firestore.rules.txt rules in Firebase Console.";
-    } else if (err?.code === "failed-precondition") {
-      message = "Firestore is not enabled for this Firebase project. Create Firestore Database first.";
-    } else if (err?.code === "unavailable") {
-      message = "Firebase is temporarily unavailable. Check your internet connection and try again.";
-    }
-
-    success.innerHTML = `
-      <div class="error">
-        <b>Registration could not be submitted.</b><br>
-        ${message}
-      </div>`;
+    success.innerHTML = `<div class="error">
+      <b>Registration failed</b><br>${message}<br>
+      <small>Firebase code: ${error.code || "unknown"}</small>
+    </div>`;
   } finally {
-    if (button) {
-      button.disabled = false;
-      button.textContent = "Submit Registration";
-    }
+    button.disabled = false;
+    button.textContent = "Submit Registration";
   }
 });

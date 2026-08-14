@@ -41,3 +41,10 @@ The registration ID shown after successful registration must be saved by the stu
 ## D. Important
 
 The previous demo Firestore rules may have been changed when Google Authentication was added. Make sure the current `firestore.rules.txt` is deployed, or use rules appropriate to your final architecture.
+
+
+## Registration code fix in this version
+
+`register.html` now loads `register.js` using `type="module"`. This was required because `register.js` uses Firebase ES-module imports. The previous version loaded it as a normal script, so the JavaScript never executed and the Submit button appeared to do nothing.
+
+`register.js` also now shows clearer Firestore errors.
