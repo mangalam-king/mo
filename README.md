@@ -43,3 +43,7 @@ Admin → Olympiad Settings now supports:
 - Official notice
 
 After saving, approved applicants see the latest schedule automatically on their admit card. No manual editing of applicant admit cards is required.
+
+
+### Schedule submission fix
+The admin schedule form now validates the date/time/centre, saves directly to `settings/olympiad`, and displays the exact Firebase error if saving fails.

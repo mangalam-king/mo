@@ -1,4 +1,4 @@
-import { db, collection, getDocs, query, where, doc, setDoc, deleteDoc, addDoc, auth, googleProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "./firebase.js";
+import { db, collection, getDocs, getDoc, query, where, doc, setDoc, deleteDoc, addDoc, auth, googleProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "./firebase.js";
 
 const ADMIN_EMAILS = ["mangalamsoni70@gmail.com"];
 
@@ -73,6 +73,24 @@ $("resultForm").addEventListener("submit",async e=>{e.preventDefault();let f=Obj
 $("noticeForm").addEventListener("submit",async e=>{e.preventDefault();let f=Object.fromEntries(new FormData(e.target));await addDoc(collection(db,"announcements"),{...f,date:new Date().toLocaleDateString("en-IN")});e.target.reset();renderNotices()});
 async function renderNotices(){let e=$("noticeAdmin"),s=await getDocs(collection(db,"announcements"));e.innerHTML=s.docs.map(d=>{let x=d.data();return `<div class="notice"><b>${esc(x.type)}:</b> ${esc(x.text)} <button class="smallbtn" onclick="deleteNotice('${d.id}')">Delete</button></div>`}).join("")||'<p class="muted">No announcements.</p>'}
 window.deleteNotice=async id=>{await deleteDoc(doc(db,"announcements",id));renderNotices()};
+
+async function loadSettings(){
+  try{
+    const ref = doc(db, "settings", "olympiad");
+    const snap = await getDoc(ref);
+    if(!snap.exists()) return;
+    const data = snap.data();
+    const form = $("settingsForm");
+    if(!form) return;
+    for(const [key,value] of Object.entries(data)){
+      const field = form.elements[key];
+      if(field && key !== "updatedAt") field.value = value ?? "";
+    }
+  }catch(err){
+    console.error("Could not load exam settings:", err);
+  }
+}
+
 $("settingsForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -121,8 +139,6 @@ $("settingsForm").addEventListener("submit", async (e) => {
         <b>✓ Exam schedule saved successfully.</b><br>
         Students will see the updated date, time and centre on their admit cards.
       </div>`;
-
-    await loadSettings();
 
   } catch (err) {
     console.error("Exam schedule save error:", err);
