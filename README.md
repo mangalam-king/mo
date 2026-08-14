@@ -28,3 +28,18 @@ For a real public Olympiad, use proper server-side/admin protection or Firebase 
 
 ## Firestore setup
 Create a Firestore Database in the Firebase console and publish the supplied `firestore.rules.txt` rules for this demo.
+
+
+## Exam Schedule controlled by Admin
+
+Admin → Olympiad Settings now supports:
+- Exam date
+- Start time
+- End time
+- Exam duration
+- Exam place/centre
+- Centre address
+- Exam instructions
+- Official notice
+
+After saving, approved applicants see the latest schedule automatically on their admit card. No manual editing of applicant admit cards is required.

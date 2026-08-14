@@ -78,12 +78,15 @@
   <section class="admin-section">
     <h2>⚙️ Olympiad Settings</h2>
     <form id="settingsForm" class="form-grid">
-      <label>Exam Date<input name="examDate" type="date"></label>
-      <label>Exam Time<input name="examTime" type="time"></label>
-      <label>Exam Centre<input name="examCentre"></label>
-      <label>Exam Duration (minutes)<input name="duration" type="number" min="1"></label>
+      <label>Exam Date<input name="examDate" type="date" required></label>
+      <label>Start Time<input name="startTime" type="time" required></label>
+      <label>End Time<input name="endTime" type="time" required></label>
+      <label>Exam Duration (minutes)<input name="duration" type="number" min="1" placeholder="120"></label>
+      <label>Exam Place / Centre<input name="examCentre" required placeholder="M.A.T.S School"></label>
+      <label class="full">Centre Address<input name="centreAddress" placeholder="Full examination centre address"></label>
+      <label class="full">Exam Instructions<textarea name="instructions" rows="4" placeholder="Bring admit card, reach 30 minutes before exam, etc."></textarea></label>
       <label class="full">Official Notice<input name="officialNotice" placeholder="Shown to students"></label>
-      <button class="btn primary full">Save Exam Settings</button>
+      <button class="btn primary full">💾 Save / Update Exam Schedule</button>
     </form><div id="settingsMsg"></div>
   </section>
 </div>
