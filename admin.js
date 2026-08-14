@@ -1,8 +1,6 @@
-import { db, collection, getDocs, query, where, doc, setDoc, deleteDoc, addDoc, auth, googleProvider, signInWithPopup, signOut, onAuthStateChanged } from "./firebase.js";
+import { db, collection, getDocs, query, where, doc, setDoc, deleteDoc, addDoc, auth, googleProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "./firebase.js";
 
-const ADMIN_EMAILS = [
-  "mangalamsoni70@gmail.com"
-];
+const ADMIN_EMAILS = ["mangalamsoni70@gmail.com"];
 
 let regs=[];
 const $=id=>document.getElementById(id);
@@ -10,9 +8,27 @@ const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&
 
 $("googleLogin").onclick=async()=>{
   $("authMsg").innerHTML='<div class="success">Opening Google sign-in…</div>';
-  try{await signInWithPopup(auth,googleProvider)}catch(e){console.error(e);$("authMsg").innerHTML='<div class="error">Google sign-in failed or was cancelled.</div>'}
+  try{
+    await signInWithPopup(auth,googleProvider);
+  }catch(e){
+    console.error("Google sign-in:",e);
+    const code=e?.code||"";
+    if(code==="auth/popup-blocked" || code==="auth/popup-closed-by-user" || code==="auth/cancelled-popup-request"){
+      try{ await signInWithRedirect(auth,googleProvider); return; }catch(e2){ console.error(e2); }
+    }
+    let msg="Google sign-in failed.";
+    if(code==="auth/unauthorized-domain") msg="This website domain is not authorized in Firebase. Add your GitHub Pages domain in Firebase Authentication → Settings → Authorized domains.";
+    else if(code==="auth/operation-not-allowed") msg="Google sign-in is not enabled. Enable Google under Firebase Authentication → Sign-in method.";
+    else if(code==="auth/popup-blocked") msg="Your browser blocked the Google popup. Allow popups for this site and try again.";
+    else if(code==="auth/network-request-failed") msg="Network error. Check your internet connection and try again.";
+    $("authMsg").innerHTML=`<div class="error">${msg}<br><small>Error: ${code||e.message||"unknown"}</small></div>`;
+  }
 };
 $("logoutBtn").onclick=()=>signOut(auth);
+
+getRedirectResult(auth).catch(e=>{
+  if(e) console.error("Google redirect result:",e);
+});
 
 onAuthStateChanged(auth,async user=>{
   if(!user){$("loginBox").classList.remove("hidden");$("adminPanel").classList.add("hidden");return}

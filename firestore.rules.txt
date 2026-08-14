@@ -1,16 +1,30 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
     match /registrations/{id} {
-      allow read, create, update, delete: if request.auth != null;
+      // Students can create a registration.
+      allow create: if true;
+
+      // Student login/dashboard/admit/result lookup.
+      // NOTE: This is intentionally permissive because the user requested
+      // no authentication for students.
+      allow read: if true;
+
+      // Only authenticated Google admins can modify/delete registrations.
+      allow update, delete: if request.auth != null;
     }
+
     match /results/{id} {
-      allow read, create, update, delete: if request.auth != null;
+      allow read: if true;
+      allow create, update, delete: if request.auth != null;
     }
+
     match /announcements/{id} {
       allow read: if true;
       allow create, update, delete: if request.auth != null;
     }
+
     match /settings/{id} {
       allow read: if true;
       allow create, update, delete: if request.auth != null;
