@@ -1,254 +1,216 @@
 // ============================================================
-// MO OLYMPIAD - ADMIN PANEL
+// MO OLYMPIAD - COMPLETE ADMIN PANEL
 // ============================================================
 
 import {
-
   db,
-
   collection,
   getDocs,
   getDoc,
-  query,
-  where,
   doc,
   setDoc,
   deleteDoc,
+  addDoc,
 
   auth,
   googleProvider,
-
   signInWithPopup,
   signInWithRedirect,
   getRedirectResult,
   signOut,
   onAuthStateChanged
-
 } from "./firebase.js";
 
 
 // ============================================================
-// ADMIN EMAIL
+// ADMIN EMAILS
 // ============================================================
 
-const ADMIN_EMAIL =
-  "mangalamsoni70@gmail.com";
-
-
-// ============================================================
-// HELPER
-// ============================================================
-
-function $(id) {
-
-  return document.getElementById(id);
-
-}
+const ADMIN_EMAILS = [
+  "mangalamsoni70@gmail.com"
+];
 
 
 // ============================================================
-// ELEMENTS
+// GLOBAL DATA
 // ============================================================
 
-const loginSection =
-  $("adminLogin");
+let regs = [];
 
-const dashboardSection =
-  $("adminDashboard");
 
-const googleLoginButton =
-  $("googleLogin");
+// ============================================================
+// HELPERS
+// ============================================================
 
-const logoutButton =
-  $("logoutBtn");
+const $ = id => document.getElementById(id);
 
-const authMessage =
-  $("authMsg");
-
-const settingsForm =
-  $("settingsForm");
-
-const settingsMessage =
-  $("settingsMsg");
+const esc = value =>
+  String(value ?? "").replace(
+    /[&<>"']/g,
+    char => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#039;"
+    }[char])
+  );
 
 
 // ============================================================
 // GOOGLE LOGIN
 // ============================================================
 
-if (googleLoginButton) {
+$("googleLogin").onclick = async () => {
 
-  googleLoginButton.addEventListener(
-    "click",
-    async () => {
+  $("authMsg").innerHTML =
+    '<div class="success">Opening Google sign-in…</div>';
 
-      if (authMessage) {
+  try {
 
-        authMessage.innerHTML = `
-          <div class="success">
-            Opening Google sign-in...
-          </div>
-        `;
+    await signInWithPopup(
+      auth,
+      googleProvider
+    );
 
-      }
+  } catch (e) {
+
+    console.error(
+      "Google sign-in:",
+      e
+    );
+
+    const code = e?.code || "";
+
+    // Popup blocked / closed
+    if (
+      code === "auth/popup-blocked" ||
+      code === "auth/popup-closed-by-user" ||
+      code === "auth/cancelled-popup-request"
+    ) {
 
       try {
 
-        await signInWithPopup(
+        await signInWithRedirect(
           auth,
           googleProvider
         );
 
-      }
+        return;
 
-      catch (error) {
+      } catch (redirectError) {
 
         console.error(
-          "Google login error:",
-          error
+          "Redirect login error:",
+          redirectError
         );
-
-        /*
-          If popup is blocked, try redirect login.
-        */
-
-        if (
-
-          error.code ===
-          "auth/popup-blocked" ||
-
-          error.code ===
-          "auth/popup-closed-by-user" ||
-
-          error.code ===
-          "auth/cancelled-popup-request"
-
-        ) {
-
-          try {
-
-            await signInWithRedirect(
-              auth,
-              googleProvider
-            );
-
-            return;
-
-          }
-
-          catch (redirectError) {
-
-            console.error(
-              "Redirect login error:",
-              redirectError
-            );
-
-          }
-
-        }
-
-
-        let message =
-          "Google sign-in failed.";
-
-
-        if (
-          error.code ===
-          "auth/operation-not-allowed"
-        ) {
-
-          message =
-            "Google Sign-In is not enabled in Firebase.";
-
-        }
-
-
-        else if (
-          error.code ===
-          "auth/unauthorized-domain"
-        ) {
-
-          message =
-            "This website domain is not authorized in Firebase. Add your GitHub Pages domain under Firebase Authentication → Settings → Authorized domains.";
-
-        }
-
-
-        else if (
-          error.code ===
-          "auth/network-request-failed"
-        ) {
-
-          message =
-            "Network error. Check your internet connection.";
-
-        }
-
-
-        if (authMessage) {
-
-          authMessage.innerHTML = `
-
-            <div class="error">
-
-              <strong>Google sign-in failed.</strong>
-
-              <br><br>
-
-              ${message}
-
-              <br>
-
-              <small>
-                Error:
-                ${error.code || "unknown"}
-              </small>
-
-            </div>
-
-          `;
-
-        }
 
       }
 
     }
-  );
 
-}
+
+    let msg =
+      "Google sign-in failed.";
+
+
+    if (
+      code === "auth/unauthorized-domain"
+    ) {
+
+      msg =
+        "This website domain is not authorized in Firebase. " +
+        "Add your GitHub Pages domain in Firebase Authentication → Settings → Authorized domains.";
+
+    }
+
+    else if (
+      code === "auth/operation-not-allowed"
+    ) {
+
+      msg =
+        "Google sign-in is not enabled. " +
+        "Enable Google under Firebase Authentication → Sign-in method.";
+
+    }
+
+    else if (
+      code === "auth/popup-blocked"
+    ) {
+
+      msg =
+        "Your browser blocked the Google popup. " +
+        "Allow popups for this website and try again.";
+
+    }
+
+    else if (
+      code === "auth/network-request-failed"
+    ) {
+
+      msg =
+        "Network error. Check your internet connection and try again.";
+
+    }
+
+
+    $("authMsg").innerHTML = `
+      <div class="error">
+        ${msg}
+        <br>
+        <small>
+          Error: ${esc(code || e.message || "unknown")}
+        </small>
+      </div>
+    `;
+
+  }
+
+};
+
+
+// ============================================================
+// LOGOUT
+// ============================================================
+
+$("logoutBtn").onclick = async () => {
+
+  try {
+
+    await signOut(auth);
+
+  } catch (error) {
+
+    console.error(
+      "Logout error:",
+      error
+    );
+
+  }
+
+};
 
 
 // ============================================================
 // GOOGLE REDIRECT RESULT
 // ============================================================
 
-getRedirectResult(auth)
+getRedirectResult(auth).catch(error => {
 
-  .then(result => {
-
-    if (result && result.user) {
-
-      console.log(
-        "Google redirect login successful:",
-        result.user.email
-      );
-
-    }
-
-  })
-
-  .catch(error => {
+  if (error) {
 
     console.error(
-      "Redirect result error:",
+      "Google redirect result:",
       error
     );
 
-  });
+  }
+
+});
 
 
 // ============================================================
-// CHECK ADMIN USER
+// AUTH STATE
 // ============================================================
 
 onAuthStateChanged(
@@ -261,11 +223,13 @@ onAuthStateChanged(
 
     if (!user) {
 
-      if (loginSection)
-        loginSection.style.display = "block";
+      $("loginBox")
+        .classList
+        .remove("hidden");
 
-      if (dashboardSection)
-        dashboardSection.style.display = "none";
+      $("adminPanel")
+        .classList
+        .add("hidden");
 
       return;
 
@@ -273,63 +237,32 @@ onAuthStateChanged(
 
 
     // --------------------------------------------------------
-    // CHECK EMAIL
+    // CHECK ADMIN EMAIL
     // --------------------------------------------------------
 
     const email =
       (user.email || "").toLowerCase();
 
 
-    if (
-      email !==
-      ADMIN_EMAIL.toLowerCase()
-    ) {
-
-      console.warn(
-        "Unauthorized Google account:",
-        user.email
-      );
+    const allowed =
+      ADMIN_EMAILS
+        .map(x => x.toLowerCase())
+        .includes(email);
 
 
-      if (authMessage) {
+    if (!allowed) {
 
-        authMessage.innerHTML = `
+      $("authMsg").innerHTML = `
+        <div class="error">
+          Access denied for
+          <b>${esc(user.email)}</b>.
+          <br><br>
+          This Google account is not authorized
+          to access the MO Olympiad Admin Panel.
+        </div>
+      `;
 
-          <div class="error">
-
-            <strong>Access denied.</strong>
-
-            <br><br>
-
-            This Google account is not authorized
-            to access the MO Olympiad Admin Panel.
-
-            <br><br>
-
-            Authorized account:
-
-            <strong>
-              ${ADMIN_EMAIL}
-            </strong>
-
-          </div>
-
-        `;
-
-      }
-
-
-      try {
-
-        await signOut(auth);
-
-      }
-
-      catch (error) {
-
-        console.error(error);
-
-      }
+      await signOut(auth);
 
       return;
 
@@ -340,57 +273,172 @@ onAuthStateChanged(
     // ADMIN VERIFIED
     // --------------------------------------------------------
 
-    console.log(
-      "Admin verified:",
-      user.email
-    );
+    $("loginBox")
+      .classList
+      .add("hidden");
+
+    $("adminPanel")
+      .classList
+      .remove("hidden");
 
 
-    if (loginSection)
-      loginSection.style.display = "none";
+    $("adminUser").textContent =
+      `Signed in as ${user.email}`;
 
 
-    if (dashboardSection)
-      dashboardSection.style.display = "block";
-
-
-    if (authMessage)
-      authMessage.innerHTML = "";
-
-
-    // Load saved settings
-    await loadSettings();
+    await renderAll();
 
   }
 );
 
 
 // ============================================================
-// LOGOUT
+// LOAD ALL ADMIN DATA
 // ============================================================
 
-if (logoutButton) {
+async function renderAll() {
 
-  logoutButton.addEventListener(
-    "click",
-    async () => {
+  try {
 
-      try {
+    // --------------------------------------------------------
+    // REGISTRATIONS
+    // --------------------------------------------------------
 
-        await signOut(auth);
+    const registrationSnapshot =
+      await getDocs(
+        collection(
+          db,
+          "registrations"
+        )
+      );
 
-        location.reload();
 
-      }
+    regs =
+      registrationSnapshot.docs.map(
+        d => ({
+          ...d.data()
+        })
+      );
 
-      catch (error) {
 
-        console.error(
-          "Logout error:",
-          error
-        );
+    // --------------------------------------------------------
+    // RESULTS
+    // --------------------------------------------------------
 
-      }
+    const resultSnapshot =
+      await getDocs(
+        collection(
+          db,
+          "results"
+        )
+      );
+
+
+    const results =
+      resultSnapshot.docs.map(
+        d => d.data()
+      );
+
+
+    // --------------------------------------------------------
+    // STATISTICS
+    // --------------------------------------------------------
+
+    $("totalStudents").textContent =
+      regs.length;
+
+
+    $("approvedStudents").textContent =
+      regs.filter(
+        x => x.status === "Approved"
+      ).length;
+
+
+    $("pendingStudents").textContent =
+      regs.filter(
+        x => x.status !== "Approved"
+      ).length;
+
+
+    $("qualifiedStudents").textContent =
+      results.filter(
+        x => x.status === "Qualified"
+      ).length;
+
+
+    // --------------------------------------------------------
+    // RENDER SECTIONS
+    // --------------------------------------------------------
+
+    renderRegistrations();
+
+    await renderNotices();
+
+    await loadSettings();
+
+
+  } catch (error) {
+
+    console.error(
+      "Could not load admin data:",
+      error
+    );
+
+
+    alert(
+      "Could not read Firestore. Check your Firestore rules and Firebase configuration."
+    );
+
+  }
+
+}
+
+
+// ============================================================
+// FILTER REGISTRATIONS
+// ============================================================
+
+function visibleRows() {
+
+  const search =
+    (
+      $("adminSearch").value ||
+      ""
+    ).toLowerCase();
+
+
+  const status =
+    $("statusFilter").value;
+
+
+  return regs.filter(
+    registration => {
+
+      const text = [
+
+        registration.id,
+
+        registration.name,
+
+        registration.school,
+
+        registration.mobile
+
+      ]
+        .join(" ")
+        .toLowerCase();
+
+
+      return (
+
+        text.includes(search) &&
+
+        (
+          status === "" ||
+          registration.status === status
+        )
+
+      );
 
     }
   );
@@ -399,7 +447,879 @@ if (logoutButton) {
 
 
 // ============================================================
-// LOAD EXAM SETTINGS
+// RENDER REGISTRATION TABLE
+// ============================================================
+
+function renderRegistrations() {
+
+  const rows =
+    visibleRows();
+
+
+  $("regTable").innerHTML =
+
+    rows.map(
+      registration => `
+
+        <tr>
+
+          <td>
+            <input
+              class="rowcheck"
+              type="checkbox"
+              value="${esc(registration.id)}"
+            >
+          </td>
+
+          <td>
+            ${esc(registration.id)}
+          </td>
+
+          <td>
+            ${esc(registration.name)}
+          </td>
+
+          <td>
+            ${esc(registration.class)}
+          </td>
+
+          <td>
+            ${esc(registration.school)}
+          </td>
+
+          <td>
+            ${esc(registration.mobile)}
+          </td>
+
+          <td>
+
+            <span
+              class="status ${
+                registration.status === "Approved"
+                  ? "approved"
+                  : ""
+              }"
+            >
+              ${esc(
+                registration.status || "Pending"
+              )}
+            </span>
+
+          </td>
+
+          <td>
+
+            <button
+              class="smallbtn"
+              onclick="editStudent('${esc(registration.id)}')"
+            >
+              Edit
+            </button>
+
+            <button
+              class="smallbtn"
+              onclick="toggleApproval('${esc(registration.id)}')"
+            >
+              ${
+                registration.status === "Approved"
+                  ? "Unapprove"
+                  : "Approve"
+              }
+            </button>
+
+            <button
+              class="smallbtn"
+              onclick="deleteReg('${esc(registration.id)}')"
+            >
+              Delete
+            </button>
+
+          </td>
+
+        </tr>
+
+      `
+    ).join("")
+
+    ||
+
+    `
+      <tr>
+        <td colspan="8">
+          No registrations found.
+        </td>
+      </tr>
+    `;
+
+}
+
+
+window.renderRegistrations =
+  renderRegistrations;
+
+
+// ============================================================
+// EDIT STUDENT
+// ============================================================
+
+window.editStudent = id => {
+
+  const student =
+    regs.find(
+      x => x.id === id
+    );
+
+
+  if (!student)
+    return;
+
+
+  const form =
+    $("editForm");
+
+
+  const fields = [
+
+    "id",
+    "name",
+    "class",
+    "school",
+    "mobile",
+    "parent",
+    "city",
+    "email"
+
+  ];
+
+
+  for (const field of fields) {
+
+    if (
+      form.elements[field]
+    ) {
+
+      form.elements[field].value =
+        student[field] || "";
+
+    }
+
+  }
+
+
+  window.scrollTo({
+
+    top:
+      form.offsetTop - 100,
+
+    behavior:
+      "smooth"
+
+  });
+
+};
+
+
+// ============================================================
+// APPROVE / UNAPPROVE
+// ============================================================
+
+window.toggleApproval =
+  async id => {
+
+    try {
+
+      const student =
+        regs.find(
+          x => x.id === id
+        );
+
+
+      if (!student)
+        return;
+
+
+      const newStatus =
+        student.status === "Approved"
+          ? "Pending"
+          : "Approved";
+
+
+      await setDoc(
+
+        doc(
+          db,
+          "registrations",
+          id
+        ),
+
+        {
+          ...student,
+          status: newStatus
+        }
+
+      );
+
+
+      await renderAll();
+
+
+    } catch (error) {
+
+      console.error(
+        "Approval error:",
+        error
+      );
+
+
+      alert(
+        "Could not update registration."
+      );
+
+    }
+
+  };
+
+
+// ============================================================
+// DELETE REGISTRATION
+// ============================================================
+
+window.deleteReg =
+  async id => {
+
+    if (
+      !confirm(
+        "Delete this registration permanently?"
+      )
+    ) {
+
+      return;
+
+    }
+
+
+    try {
+
+      await deleteDoc(
+
+        doc(
+          db,
+          "registrations",
+          id
+        )
+
+      );
+
+
+      await renderAll();
+
+
+    } catch (error) {
+
+      console.error(
+        "Delete error:",
+        error
+      );
+
+
+      alert(
+        "Could not delete registration."
+      );
+
+    }
+
+  };
+
+
+// ============================================================
+// SELECT ALL
+// ============================================================
+
+window.toggleAll =
+  checkbox => {
+
+    document
+      .querySelectorAll(
+        ".rowcheck"
+      )
+      .forEach(
+        item =>
+          item.checked =
+            checkbox.checked
+      );
+
+  };
+
+
+// ============================================================
+// APPROVE VISIBLE
+// ============================================================
+
+window.approveVisible =
+  async () => {
+
+    const ids =
+      [
+        ...document.querySelectorAll(
+          ".rowcheck:checked"
+        )
+      ].map(
+        x => x.value
+      );
+
+
+    if (!ids.length) {
+
+      alert(
+        "Select students first."
+      );
+
+      return;
+
+    }
+
+
+    try {
+
+      for (
+        const id of ids
+      ) {
+
+        const student =
+          regs.find(
+            x => x.id === id
+          );
+
+
+        if (
+          student &&
+          student.status !== "Approved"
+        ) {
+
+          await setDoc(
+
+            doc(
+              db,
+              "registrations",
+              id
+            ),
+
+            {
+              ...student,
+              status: "Approved"
+            }
+
+          );
+
+        }
+
+      }
+
+
+      await renderAll();
+
+
+    } catch (error) {
+
+      console.error(
+        "Bulk approval error:",
+        error
+      );
+
+
+      alert(
+        "Could not approve selected students."
+      );
+
+    }
+
+  };
+
+
+// ============================================================
+// EXPORT CSV
+// ============================================================
+
+window.exportRegistrations =
+  () => {
+
+    const rows =
+      visibleRows();
+
+
+    const headers = [
+
+      "ID",
+      "Name",
+      "Class",
+      "School",
+      "Mobile",
+      "Parent",
+      "City",
+      "Email",
+      "Status",
+      "Date"
+
+    ];
+
+
+    const csvRows = [
+
+      headers,
+
+      ...rows.map(
+        r => [
+
+          r.id,
+          r.name,
+          r.class,
+          r.school,
+          r.mobile,
+          r.parent,
+          r.city,
+          r.email,
+          r.status,
+          r.date
+
+        ]
+      )
+
+    ];
+
+
+    const csv =
+      csvRows
+
+        .map(
+          row =>
+            row
+              .map(
+                value =>
+                  `"${String(
+                    value ?? ""
+                  ).replaceAll(
+                    '"',
+                    '""'
+                  )}"`
+              )
+              .join(",")
+        )
+
+        .join("\n");
+
+
+    const url =
+      URL.createObjectURL(
+
+        new Blob(
+          [csv],
+          {
+            type:
+              "text/csv"
+          }
+        )
+
+      );
+
+
+    const link =
+      document.createElement(
+        "a"
+      );
+
+
+    link.href =
+      url;
+
+
+    link.download =
+      "MO-Olympiad-registrations.csv";
+
+
+    link.click();
+
+
+    URL.revokeObjectURL(
+      url
+    );
+
+  };
+
+
+// ============================================================
+// STUDENT EDIT FORM
+// ============================================================
+
+$("editForm")
+  .addEventListener(
+    "submit",
+    async event => {
+
+      event.preventDefault();
+
+
+      try {
+
+        const form =
+          Object.fromEntries(
+            new FormData(
+              event.target
+            )
+          );
+
+
+        form.id =
+          form.id.toUpperCase();
+
+
+        const old =
+          regs.find(
+            x => x.id === form.id
+          );
+
+
+        if (!old) {
+
+          $("editMsg").innerHTML = `
+            <div class="error">
+              Registration ID not found.
+            </div>
+          `;
+
+          return;
+
+        }
+
+
+        await setDoc(
+
+          doc(
+            db,
+            "registrations",
+            form.id
+          ),
+
+          {
+            ...old,
+            ...form
+          }
+
+        );
+
+
+        $("editMsg").innerHTML = `
+          <div class="success">
+            Student updated successfully.
+          </div>
+        `;
+
+
+        await renderAll();
+
+
+      } catch (error) {
+
+        console.error(
+          "Student update error:",
+          error
+        );
+
+
+        $("editMsg").innerHTML = `
+          <div class="error">
+            Could not update student.
+            <br>
+            ${esc(error.message)}
+          </div>
+        `;
+
+      }
+
+    }
+  );
+
+
+// ============================================================
+// RESULT MANAGEMENT
+// ============================================================
+
+$("resultForm")
+  .addEventListener(
+    "submit",
+    async event => {
+
+      event.preventDefault();
+
+
+      try {
+
+        const form =
+          Object.fromEntries(
+            new FormData(
+              event.target
+            )
+          );
+
+
+        form.id =
+          form.id.toUpperCase();
+
+
+        if (
+          !regs.some(
+            x => x.id === form.id
+          )
+        ) {
+
+          $("resultMsg").innerHTML = `
+            <div class="error">
+              Registration ID not found.
+            </div>
+          `;
+
+          return;
+
+        }
+
+
+        await setDoc(
+
+          doc(
+            db,
+            "results",
+            form.id
+          ),
+
+          form
+
+        );
+
+
+        $("resultMsg").innerHTML = `
+          <div class="success">
+            Result published successfully.
+          </div>
+        `;
+
+
+        await renderAll();
+
+
+      } catch (error) {
+
+        console.error(
+          "Result error:",
+          error
+        );
+
+
+        $("resultMsg").innerHTML = `
+          <div class="error">
+            Could not publish result.
+            <br>
+            ${esc(error.message)}
+          </div>
+        `;
+
+      }
+
+    }
+  );
+
+
+// ============================================================
+// ANNOUNCEMENT FORM
+// ============================================================
+
+$("noticeForm")
+  .addEventListener(
+    "submit",
+    async event => {
+
+      event.preventDefault();
+
+
+      try {
+
+        const form =
+          Object.fromEntries(
+            new FormData(
+              event.target
+            )
+          );
+
+
+        await addDoc(
+
+          collection(
+            db,
+            "announcements"
+          ),
+
+          {
+            ...form,
+
+            date:
+              new Date()
+                .toLocaleDateString(
+                  "en-IN"
+                ),
+
+            createdAt:
+              new Date().toISOString()
+
+          }
+
+        );
+
+
+        event.target.reset();
+
+
+        await renderNotices();
+
+
+      } catch (error) {
+
+        console.error(
+          "Announcement error:",
+          error
+        );
+
+
+        alert(
+          "Could not publish announcement."
+        );
+
+      }
+
+    }
+  );
+
+
+// ============================================================
+// RENDER ANNOUNCEMENTS
+// ============================================================
+
+async function renderNotices() {
+
+  try {
+
+    const container =
+      $("noticeAdmin");
+
+
+    const snapshot =
+      await getDocs(
+        collection(
+          db,
+          "announcements"
+        )
+      );
+
+
+    container.innerHTML =
+
+      snapshot.docs
+
+        .map(
+          d => {
+
+            const data =
+              d.data();
+
+
+            return `
+
+              <div class="notice">
+
+                <b>
+                  ${esc(data.type)}:
+                </b>
+
+                ${esc(data.text)}
+
+                <button
+                  class="smallbtn"
+                  onclick="deleteNotice('${esc(d.id)}')"
+                >
+                  Delete
+                </button>
+
+              </div>
+
+            `;
+
+          }
+        )
+
+        .join("")
+
+      ||
+
+      `
+        <p class="muted">
+          No announcements.
+        </p>
+      `;
+
+
+  } catch (error) {
+
+    console.error(
+      "Announcement loading error:",
+      error
+    );
+
+  }
+
+}
+
+
+window.deleteNotice =
+  async id => {
+
+    if (
+      !confirm(
+        "Delete this announcement?"
+      )
+    ) {
+
+      return;
+
+    }
+
+
+    try {
+
+      await deleteDoc(
+
+        doc(
+          db,
+          "announcements",
+          id
+        )
+
+      );
+
+
+      await renderNotices();
+
+
+    } catch (error) {
+
+      console.error(
+        "Delete notice error:",
+        error
+      );
+
+    }
+
+  };
+
+
+// ============================================================
+// LOAD EXAM SCHEDULE
 // ============================================================
 
 async function loadSettings() {
@@ -415,14 +1335,17 @@ async function loadSettings() {
 
 
     const snapshot =
-      await getDoc(reference);
+      await getDoc(
+        reference
+      );
 
 
-    // No schedule yet
-    if (!snapshot.exists()) {
+    if (
+      !snapshot.exists()
+    ) {
 
       console.log(
-        "No exam schedule found."
+        "No exam schedule saved yet."
       );
 
       return;
@@ -434,152 +1357,75 @@ async function loadSettings() {
       snapshot.data();
 
 
-    if (!settingsForm)
+    const form =
+      $("settingsForm");
+
+
+    if (!form)
       return;
 
 
-    // --------------------------------------------------------
-    // DATE
-    // --------------------------------------------------------
+    const fields = [
 
-    if (
-      settingsForm.elements.examDate
-    ) {
+      "examDate",
+      "startTime",
+      "endTime",
+      "duration",
+      "examCentre",
+      "centreAddress",
+      "instructions",
+      "officialNotice"
 
-      settingsForm.elements.examDate.value =
-        data.examDate || "";
-
-    }
-
-
-    // --------------------------------------------------------
-    // START TIME
-    // --------------------------------------------------------
-
-    if (
-      settingsForm.elements.startTime
-    ) {
-
-      settingsForm.elements.startTime.value =
-        data.startTime || "";
-
-    }
+    ];
 
 
-    // --------------------------------------------------------
-    // END TIME
-    // --------------------------------------------------------
+    fields.forEach(
+      fieldName => {
 
-    if (
-      settingsForm.elements.endTime
-    ) {
-
-      settingsForm.elements.endTime.value =
-        data.endTime || "";
-
-    }
+        const field =
+          form.elements[fieldName];
 
 
-    // --------------------------------------------------------
-    // DURATION
-    // --------------------------------------------------------
+        if (field) {
 
-    if (
-      settingsForm.elements.duration
-    ) {
+          field.value =
+            data[fieldName] ?? "";
 
-      settingsForm.elements.duration.value =
-        data.duration || "";
+        }
 
-    }
-
-
-    // --------------------------------------------------------
-    // EXAM CENTRE
-    // --------------------------------------------------------
-
-    if (
-      settingsForm.elements.examCentre
-    ) {
-
-      settingsForm.elements.examCentre.value =
-        data.examCentre || "";
-
-    }
-
-
-    // --------------------------------------------------------
-    // ADDRESS
-    // --------------------------------------------------------
-
-    if (
-      settingsForm.elements.centreAddress
-    ) {
-
-      settingsForm.elements.centreAddress.value =
-        data.centreAddress || "";
-
-    }
-
-
-    // --------------------------------------------------------
-    // INSTRUCTIONS
-    // --------------------------------------------------------
-
-    if (
-      settingsForm.elements.instructions
-    ) {
-
-      settingsForm.elements.instructions.value =
-        data.instructions || "";
-
-    }
-
-
-    // --------------------------------------------------------
-    // OFFICIAL NOTICE
-    // --------------------------------------------------------
-
-    if (
-      settingsForm.elements.officialNotice
-    ) {
-
-      settingsForm.elements.officialNotice.value =
-        data.officialNotice || "";
-
-    }
+      }
+    );
 
 
     console.log(
       "Exam schedule loaded successfully."
     );
 
-  }
 
-  catch (error) {
+  } catch (error) {
 
     console.error(
-      "Load settings error:",
+      "Could not load exam schedule:",
       error
     );
 
 
-    if (settingsMessage) {
+    const message =
+      $("settingsMsg");
 
-      settingsMessage.innerHTML = `
 
+    if (message) {
+
+      message.innerHTML = `
         <div class="error">
 
-          <strong>
-            Could not load exam schedule.
-          </strong>
+          Could not load exam schedule.
 
           <br>
 
-          ${error.message}
+          ${esc(error.message)}
 
         </div>
-
       `;
 
     }
@@ -593,28 +1439,32 @@ async function loadSettings() {
 // SAVE / UPDATE EXAM SCHEDULE
 // ============================================================
 
-if (settingsForm) {
-
-  settingsForm.addEventListener(
+$("settingsForm")
+  .addEventListener(
     "submit",
     async event => {
 
       event.preventDefault();
 
 
-      // ------------------------------------------------------
-      // BUTTON
-      // ------------------------------------------------------
+      const form =
+        event.currentTarget;
+
 
       const button =
-        settingsForm.querySelector(
+        form.querySelector(
           'button[type="submit"]'
         );
 
 
+      const message =
+        $("settingsMsg");
+
+
       if (button) {
 
-        button.disabled = true;
+        button.disabled =
+          true;
 
         button.textContent =
           "Saving...";
@@ -622,70 +1472,69 @@ if (settingsForm) {
       }
 
 
-      if (settingsMessage) {
-
-        settingsMessage.innerHTML = "";
-
-      }
+      message.innerHTML =
+        "";
 
 
       try {
 
         // ----------------------------------------------------
-        // GET FORM DATA
+        // FORM DATA
         // ----------------------------------------------------
 
-        const formData =
-          new FormData(
-            settingsForm
+        const data =
+          Object.fromEntries(
+            new FormData(
+              form
+            )
           );
 
 
         const examDate =
           String(
-            formData.get("examDate") || ""
+            data.examDate || ""
           ).trim();
 
 
         const startTime =
           String(
-            formData.get("startTime") || ""
+            data.startTime || ""
           ).trim();
 
 
         const endTime =
           String(
-            formData.get("endTime") || ""
+            data.endTime || ""
           ).trim();
 
 
         const duration =
           String(
-            formData.get("duration") || ""
+            data.duration || ""
           ).trim();
 
 
         const examCentre =
           String(
-            formData.get("examCentre") || ""
+            data.examCentre || ""
           ).trim();
 
 
         const centreAddress =
           String(
-            formData.get("centreAddress") || ""
+            data.centreAddress || ""
           ).trim();
 
 
         const instructions =
           String(
-            formData.get("instructions") || ""
+            data.instructions || ""
           ).trim();
 
 
         const officialNotice =
           String(
-            formData.get("officialNotice") || ""
+            data.officialNotice || ""
           ).trim();
 
 
@@ -723,13 +1572,15 @@ if (settingsForm) {
         if (!examCentre) {
 
           throw new Error(
-            "Please enter the exam place / centre."
+            "Please enter the examination centre/place."
           );
 
         }
 
 
-        if (startTime >= endTime) {
+        if (
+          startTime >= endTime
+        ) {
 
           throw new Error(
             "End time must be later than start time."
@@ -740,63 +1591,59 @@ if (settingsForm) {
 
         if (
           duration &&
-          Number(duration) <= 0
+          (
+            Number(duration) <= 0 ||
+            !Number.isFinite(
+              Number(duration)
+            )
+          )
         ) {
 
           throw new Error(
-            "Exam duration must be greater than 0."
+            "Exam duration must be a valid number greater than 0."
           );
 
         }
 
 
         // ----------------------------------------------------
-        // SCHEDULE OBJECT
+        // FIRESTORE DATA
         // ----------------------------------------------------
 
         const schedule = {
 
           examDate:
-
             examDate,
 
           startTime:
-
             startTime,
 
           endTime:
-
             endTime,
 
           duration:
-
             duration,
 
           examCentre:
-
             examCentre,
 
           centreAddress:
-
             centreAddress,
 
           instructions:
-
             instructions,
 
           officialNotice:
-
             officialNotice,
 
           updatedAt:
-
             new Date().toISOString()
 
         };
 
 
         // ----------------------------------------------------
-        // SAVE TO FIRESTORE
+        // SAVE
         // ----------------------------------------------------
 
         await setDoc(
@@ -820,43 +1667,40 @@ if (settingsForm) {
         // SUCCESS
         // ----------------------------------------------------
 
-        if (settingsMessage) {
+        message.innerHTML = `
 
-          settingsMessage.innerHTML = `
+          <div class="success">
 
-            <div class="success">
+            <b>
+              ✓ Exam schedule saved successfully.
+            </b>
 
-              <strong>
-                ✓ Exam schedule saved successfully!
-              </strong>
+            <br><br>
 
-              <br><br>
+            <b>Date:</b>
+            ${esc(examDate)}
 
-              <b>Date:</b>
-              ${examDate}
+            <br>
 
-              <br>
+            <b>Time:</b>
+            ${esc(startTime)}
+            –
+            ${esc(endTime)}
 
-              <b>Time:</b>
-              ${startTime}
-              –
-              ${endTime}
+            <br>
 
-              <br>
+            <b>Centre:</b>
+            ${esc(examCentre)}
 
-              <b>Centre:</b>
-              ${examCentre}
+            <br><br>
 
-              <br><br>
+            Students will see the updated
+            examination information on their
+            admit cards.
 
-              The updated schedule will appear
-              on approved students' admit cards.
+          </div>
 
-            </div>
-
-          `;
-
-        }
+        `;
 
 
         console.log(
@@ -864,98 +1708,90 @@ if (settingsForm) {
           schedule
         );
 
-      }
 
-      catch (error) {
-
-        // ----------------------------------------------------
-        // ERROR
-        // ----------------------------------------------------
+      } catch (error) {
 
         console.error(
-          "Schedule save error:",
+          "Exam schedule save error:",
           error
         );
 
 
-        let message =
-          error.message ||
+        let errorMessage =
+          error?.message ||
           String(error);
 
 
         if (
-          error.code ===
+          error?.code ===
           "permission-denied"
         ) {
 
-          message =
+          errorMessage =
             "Firebase permission denied. " +
-            "Make sure you are signed in with " +
-            ADMIN_EMAIL +
-            " and your Firestore rules allow authenticated admins to write settings.";
+            "Make sure you are signed in as " +
+            "mangalamsoni70@gmail.com " +
+            "and your Firestore rules allow the admin to write settings.";
 
         }
 
 
         else if (
-          error.code ===
+          error?.code ===
           "unauthenticated"
         ) {
 
-          message =
-            "Your admin session has expired. " +
+          errorMessage =
+            "Your admin login session has expired. " +
             "Please sign in with Google again.";
 
         }
 
 
         else if (
-          error.code ===
+          error?.code ===
           "failed-precondition"
         ) {
 
-          message =
-            "Firestore is not configured correctly. " +
-            "Make sure Firestore Database is enabled.";
+          errorMessage =
+            "Firestore is not configured correctly.";
 
         }
 
 
-        if (settingsMessage) {
+        message.innerHTML = `
 
-          settingsMessage.innerHTML = `
+          <div class="error">
 
-            <div class="error">
+            <b>
+              Schedule was not saved.
+            </b>
 
-              <strong>
-                Schedule was not saved.
-              </strong>
+            <br><br>
 
-              <br><br>
+            ${esc(errorMessage)}
 
-              ${message}
+            <br><br>
 
-              <br><br>
+            <small>
+              Firebase error:
+              ${esc(
+                error?.code ||
+                "unknown"
+              )}
+            </small>
 
-              <small>
-                Firebase error:
-                ${error.code || "unknown"}
-              </small>
+          </div>
 
-            </div>
-
-          `;
-
-        }
-
-      }
+        `;
 
 
-      finally {
+      } finally {
 
         if (button) {
 
-          button.disabled = false;
+          button.disabled =
+            false;
 
           button.textContent =
             "💾 Save / Update Exam Schedule";
@@ -966,5 +1802,3 @@ if (settingsForm) {
 
     }
   );
-
-}
