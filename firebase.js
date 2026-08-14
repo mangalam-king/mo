@@ -1,9 +1,6 @@
-// ============================================================
-// MO OLYMPIAD - FIREBASE CONFIGURATION
-// ============================================================
-
-import { initializeApp } from
-  "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+import {
+  initializeApp
+} from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
 
 import {
   getFirestore,
@@ -15,10 +12,8 @@ import {
   where,
   doc,
   setDoc,
-  updateDoc,
   deleteDoc
-} from
-  "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
 import {
   getAuth,
@@ -28,13 +23,8 @@ import {
   getRedirectResult,
   signOut,
   onAuthStateChanged
-} from
-  "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
 
-
-// ============================================================
-// FIREBASE CONFIG
-// ============================================================
 
 const firebaseConfig = {
 
@@ -59,44 +49,33 @@ const firebaseConfig = {
 };
 
 
-// ============================================================
-// INITIALIZE FIREBASE
-// ============================================================
-
-const app = initializeApp(firebaseConfig);
-
-
-// ============================================================
-// FIRESTORE
-// ============================================================
-
-const db = getFirestore(app);
+const app =
+  initializeApp(
+    firebaseConfig
+  );
 
 
-// ============================================================
-// AUTHENTICATION
-// ============================================================
+const db =
+  getFirestore(app);
 
-const auth = getAuth(app);
+
+const auth =
+  getAuth(app);
+
 
 const googleProvider =
   new GoogleAuthProvider();
 
 
-// Optional: always request the Google account selector
 googleProvider.setCustomParameters({
   prompt: "select_account"
 });
 
 
-// ============================================================
-// EXPORT EVERYTHING
-// ============================================================
-
 export {
 
-  // Firestore
   db,
+
   collection,
   addDoc,
   getDocs,
@@ -105,12 +84,11 @@ export {
   where,
   doc,
   setDoc,
-  updateDoc,
   deleteDoc,
 
-  // Authentication
   auth,
   googleProvider,
+
   signInWithPopup,
   signInWithRedirect,
   getRedirectResult,
