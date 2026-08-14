@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Registration | MO Olympiad</title><link rel="stylesheet" href="style.css"></head>
+<body><header class="header"><div class="brand"><div class="logo">MO</div><div><b>MO Olympiad</b><small>Registration</small></div></div><button class="menu" onclick="document.querySelector('.nav').classList.toggle('show')">☰</button><nav class="nav"><a href="index.html">Home</a><a class="active" href="register.html">Registration</a><a href="admit-card.html">Admit Card</a><a href="result.html">Result</a></nav></header>
+<main class="page"><div class="form-wrap"><h1>Student Registration</h1><p class="muted">Fill in the details carefully. Your registration ID will be generated automatically.</p>
+<form id="registrationForm">
+<div class="form-grid">
+<label>Student Name<input required name="name" placeholder="Enter full name"></label>
+<label>Class<select required name="class"><option value="">Select class</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option></select></label>
+<label>School Name<input required name="school" placeholder="School name"></label>
+<label>Mobile Number<input required name="mobile" pattern="[0-9]{10}" maxlength="10" placeholder="10 digit mobile"></label>
+<label>Parent/Guardian Name<input required name="parent" placeholder="Parent/Guardian name"></label>
+<label>City<input required name="city" placeholder="City"></label>
+<label class="full">Email (optional)<input type="email" name="email" placeholder="example@email.com"></label>
+</div>
+<label class="check"><input required type="checkbox"> I confirm that the information provided is correct.</label>
+<button class="btn primary" type="submit">Submit Registration</button>
+</form><div id="regSuccess"></div></div></main>
+<footer>© <span id="year"></span> MO Olympiad</footer><script src="app.js"></script><script src="register.js"></script></body></html>

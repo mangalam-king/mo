@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Student Login | MO Olympiad</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<header class="header"><div class="brand"><div class="logo">MO</div><div><b>MO Olympiad</b><small>Student Login</small></div></div>
+<nav class="nav"><a href="index.html">Home</a><a href="register.html">Registration</a><a href="login.html" class="active">Student Login</a><a href="admin.html">Admin</a></nav></header>
+<main class="page"><div class="form-wrap small"><h1>👤 Student Login</h1><p class="muted">Login using the details you entered during registration.</p>
+<form id="loginForm">
+<label>Registration ID<input id="loginId" required placeholder="MO20260001"></label><br>
+<label>Registered Mobile Number<input id="loginMobile" required maxlength="10" placeholder="10 digit mobile"></label><br>
+<button class="btn primary" type="submit">Login</button>
+</form><div id="loginMsg"></div></div></main>
+<footer>© <span id="year"></span> MO Olympiad</footer><script src="app.js"></script><script type="module" src="login.js"></script></body></html>

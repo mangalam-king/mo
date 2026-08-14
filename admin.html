@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Admin Control Center | MO Olympiad</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<header class="header"><div class="brand"><div class="logo">MO</div><div><b>MO Olympiad</b><small>Admin Control Center</small></div></div><button class="menu" onclick="document.querySelector('.nav').classList.toggle('show')">☰</button>
+<nav class="nav"><a href="index.html">Home</a><a href="register.html">Registration</a><a href="admit-card.html">Admit Card</a><a href="result.html">Result</a><a class="active" href="admin.html">Admin</a></nav></header>
+
+<main class="page">
+<div id="loginBox" class="form-wrap small">
+  <div class="icon">🔐</div><h1>Admin Sign In</h1>
+  <p class="muted">Use an authorized Google account to access the administration panel.</p>
+  <button id="googleLogin" class="btn primary" style="width:100%">Continue with Google</button>
+  <div id="authMsg"></div>
+  <p class="muted" style="font-size:11px;margin-top:18px">Admin access is controlled by the email allowlist in <b>admin.js</b>.</p>
+</div>
+
+<div id="adminPanel" class="admin hidden">
+  <div class="admin-head">
+    <div><h1>Admin Control Center</h1><p id="adminUser" class="muted">Loading...</p></div>
+    <button class="btn ghost" id="logoutBtn">Sign out</button>
+  </div>
+
+  <div class="stats">
+    <div><b id="totalStudents">0</b><span>Total Registrations</span></div>
+    <div><b id="approvedStudents">0</b><span>Approved</span></div>
+    <div><b id="pendingStudents">0</b><span>Pending</span></div>
+    <div><b id="qualifiedStudents">0</b><span>Qualified</span></div>
+  </div>
+
+  <section class="admin-section">
+    <h2>📊 Registration Management</h2>
+    <div class="toolbar">
+      <input id="adminSearch" oninput="renderRegistrations()" placeholder="Search ID, name, school or mobile">
+      <select id="statusFilter" onchange="renderRegistrations()"><option value="">All statuses</option><option>Pending</option><option>Approved</option></select>
+      <button class="btn ghost" onclick="exportRegistrations()">⬇ Export CSV</button>
+      <button class="btn primary" onclick="approveVisible()">✓ Approve Visible</button>
+    </div>
+    <div class="table-wrap"><table><thead><tr><th><input id="selectAll" type="checkbox" onclick="toggleAll(this)"></th><th>ID</th><th>Name</th><th>Class</th><th>School</th><th>Mobile</th><th>Status</th><th>Actions</th></tr></thead><tbody id="regTable"></tbody></table></div>
+  </section>
+
+  <section class="admin-section">
+    <h2>✏️ Student Editor</h2>
+    <form id="editForm" class="form-grid">
+      <label>Registration ID<input required name="id" placeholder="MO20260001"></label>
+      <label>Student Name<input required name="name"></label>
+      <label>Class<input required name="class"></label>
+      <label>School<input required name="school"></label>
+      <label>Mobile<input required name="mobile"></label>
+      <label>Parent/Guardian<input name="parent"></label>
+      <label>City<input name="city"></label>
+      <label>Email<input name="email" type="email"></label>
+      <button class="btn primary full">Save Student</button>
+    </form><div id="editMsg"></div>
+  </section>
+
+  <section class="admin-section">
+    <h2>🏆 Result Management</h2>
+    <form id="resultForm" class="form-grid">
+      <label>Registration ID<input required name="id" placeholder="MO20260001"></label>
+      <label>Marks<input required name="marks" type="number" min="0"></label>
+      <label>Total Marks<input required name="total" type="number" min="1" value="100"></label>
+      <label>Rank<input name="rank" type="number" min="1"></label>
+      <label>Status<select name="status"><option>Qualified</option><option>Not Qualified</option></select></label>
+      <label>Certificate Number<input name="certificate"></label>
+      <button class="btn primary full">Publish / Update Result</button>
+    </form><div id="resultMsg"></div>
+  </section>
+
+  <section class="admin-section">
+    <h2>📢 Announcements</h2>
+    <form id="noticeForm" class="form-grid">
+      <label class="full">Announcement<input required name="text" placeholder="Write announcement"></label>
+      <label>Type<select name="type"><option>Important</option><option>Info</option><option>Exam</option></select></label>
+      <button class="btn primary">Publish Announcement</button>
+    </form><div id="noticeAdmin"></div>
+  </section>
+
+  <section class="admin-section">
+    <h2>⚙️ Olympiad Settings</h2>
+    <form id="settingsForm" class="form-grid">
+      <label>Exam Date<input name="examDate" type="date"></label>
+      <label>Exam Time<input name="examTime" type="time"></label>
+      <label>Exam Centre<input name="examCentre"></label>
+      <label>Exam Duration (minutes)<input name="duration" type="number" min="1"></label>
+      <label class="full">Official Notice<input name="officialNotice" placeholder="Shown to students"></label>
+      <button class="btn primary full">Save Exam Settings</button>
+    </form><div id="settingsMsg"></div>
+  </section>
+</div>
+</main>
+<footer>© <span id="year"></span> MO Olympiad</footer>
+<script src="app.js"></script><script type="module" src="admin.js"></script>
+</body></html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>MO Olympiad | Mathematics Olympiad</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="header">
+  <div class="brand"><div class="logo">MO</div><div><b>MO Olympiad</b><small>Mathematics Olympiad</small></div></div>
+  <button class="menu" onclick="document.querySelector('.nav').classList.toggle('show')">☰</button>
+  <nav class="nav">
+    <a href="index.html">Home</a><a href="register.html">Registration</a><a href="login.html">Student Login</a><a href="admit-card.html">Admit Card</a>
+    <a href="result.html">Result</a><a href="admin.html">Admin</a>
+  </nav>
+</header>
+
+<main>
+<section class="hero">
+  <div>
+    <span class="pill">🏆 MO OLYMPIAD</span>
+    <h1>Think. Solve. <span>Achieve.</span></h1>
+    <p>Challenge your mathematical thinking and compete with students from across the region.</p>
+    <div class="actions"><a class="btn primary" href="register.html">Register Now →</a><a class="btn ghost" href="#about">Learn More</a></div>
+  </div>
+  <div class="hero-card"><div class="trophy">🏆</div><h3>MO Olympiad</h3><p>Knowledge • Logic • Excellence</p><div class="stat"><b>100%</b><span>Focus on learning</span></div></div>
+</section>
+
+<section id="about" class="section">
+<h2>About MO Olympiad</h2><p class="muted">MO Olympiad is designed to encourage mathematical reasoning, problem solving and healthy academic competition.</p>
+<div class="cards">
+<div class="card"><div class="icon">🧠</div><h3>Think Smart</h3><p>Questions designed to test logic and mathematical thinking.</p></div>
+<div class="card"><div class="icon">📝</div><h3>Offline Exam</h3><p>Participate in the scheduled Olympiad examination.</p></div>
+<div class="card"><div class="icon">🏅</div><h3>Recognition</h3><p>Check your result and download your achievement documents.</p></div>
+</div>
+</section>
+
+<section class="section announcement">
+<h2>📢 Latest Announcements</h2><div id="announcements" class="notice-list"></div>
+</section>
+
+<section class="section quick">
+<h2>Quick Access</h2>
+<div class="quick-grid">
+<a href="register.html">📝<b>Registration</b><small>Register for Olympiad</small></a>
+<a href="admit-card.html">🎫<b>Admit Card</b><small>Download your admit card</small></a>
+<a href="result.html">📊<b>Result</b><small>Check your result</small></a>
+</div>
+</section>
+</main>
+<footer>© <span id="year"></span> MO Olympiad. All rights reserved.</footer>
+<script src="app.js"></script><script type="module" src="home-firebase.js"></script>
+</body>
+</html>

@@ -1,0 +1,3 @@
+import { db, collection, getDocs } from "./firebase.js";
+async function show(){let e=document.getElementById("announcements");if(!e)return;try{let s=await getDocs(collection(db,"announcements"));if(s.empty){e.innerHTML='<div class="notice">No announcements published yet.</div>';return}e.innerHTML=s.docs.map(d=>{let x=d.data();return `<div class="notice"><b>${esc(x.type)}:</b> ${esc(x.text)}</div>`}).join("")}catch(x){e.innerHTML='<div class="notice">Announcements unavailable.</div>'}}
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}show();
