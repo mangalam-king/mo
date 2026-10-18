@@ -17,6 +17,7 @@ import {
 
 import {
   getAuth,
+  signInWithEmailAndPassword,
   GoogleAuthProvider,
   signInWithPopup,
   signInWithRedirect,
@@ -87,6 +88,7 @@ export {
   deleteDoc,
 
   auth,
+  signInWithEmailAndPassword,
   googleProvider,
 
   signInWithPopup,

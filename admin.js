@@ -11,17 +11,21 @@ import {
   setDoc,
   deleteDoc,
   addDoc,
+  auth,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
 } from "./firebase.js";
 
 
 // ============================================================
 // FIXED ADMIN LOGIN
 // ============================================================
-// These credentials are checked in the browser. They are suitable only
-// for a private/demo deployment; they do not create a Firebase Auth session.
+// Fixed username maps to the existing authorized Firebase admin email.
+// Firebase Authentication must contain this email with password @131313.
 const ADMIN_USERNAME = "Msadmin";
+const ADMIN_EMAIL = "mangalamsoni70@gmail.com";
 const ADMIN_PASSWORD = "@131313";
-const ADMIN_SESSION_KEY = "moOlympiadAdminSession";
 
 // ============================================================
 // GLOBAL DATA
@@ -49,29 +53,47 @@ function showLogin() {
   $("adminPanel").classList.add("hidden");
 }
 
-$("adminLoginForm").addEventListener("submit", event => {
+$("adminLoginForm").addEventListener("submit", async event => {
   event.preventDefault();
   const username = $("adminUsername").value.trim();
   const password = $("adminPassword").value;
-  if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-    sessionStorage.setItem(ADMIN_SESSION_KEY, "true");
+  const button = $("adminLoginForm").querySelector('button[type="submit"]');
+  if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
+    $("authMsg").innerHTML = '<div class="error">Incorrect username or password.</div>';
+    return;
+  }
+  if (button) button.disabled = true;
+  $("authMsg").textContent = "Signing in securely…";
+  try {
+    const credential = await signInWithEmailAndPassword(auth, ADMIN_EMAIL, password);
+    if (credential.user.email?.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+      await signOut(auth);
+      throw new Error("This account is not authorized to administer MO Olympiad.");
+    }
     $("authMsg").innerHTML = '<div class="success">Login successful.</div>';
     showAdmin();
-  } else {
-    sessionStorage.removeItem(ADMIN_SESSION_KEY);
-    $("authMsg").innerHTML = '<div class="error">Incorrect username or password.</div>';
+  } catch (error) {
+    console.error("Admin sign-in failed:", error);
+    const message = error.code === "auth/invalid-credential" || error.code === "auth/wrong-password" || error.code === "auth/user-not-found"
+      ? "Firebase Admin account is not set up with these credentials. In Firebase Console, enable Email/Password sign-in and create/ensure mangalamsoni70@gmail.com uses the password @131313."
+      : (error.message || "Could not sign in. Check Firebase Authentication settings.");
+    $("authMsg").innerHTML = `<div class="error">${esc(message)}</div>`;
+  } finally {
+    if (button) button.disabled = false;
   }
 });
 
-$("logoutBtn").onclick = () => {
-  sessionStorage.removeItem(ADMIN_SESSION_KEY);
+$("logoutBtn").onclick = async () => {
+  try { await signOut(auth); } catch (error) { console.error("Sign-out failed:", error); }
   $("adminLoginForm").reset();
   $("authMsg").textContent = "You have signed out.";
   showLogin();
 };
 
-if (sessionStorage.getItem(ADMIN_SESSION_KEY) === "true") showAdmin();
-else showLogin();
+onAuthStateChanged(auth, user => {
+  if (user && user.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()) showAdmin();
+  else showLogin();
+});
 
 
 // ============================================================
@@ -1510,10 +1532,8 @@ $("settingsForm")
         ) {
 
           errorMessage =
-            "Firebase permission denied. " +
-            "Make sure you are signed in as " +
-            "mangalamsoni70@gmail.com " +
-            "and your Firestore rules allow the admin to write settings.";
+            "Firebase denied the write. Confirm you are signed in to Firebase Authentication as " +
+            "mangalamsoni70@gmail.com and that Firestore rules permit this admin account to write settings/olympiad.";
 
         }
 
@@ -1524,8 +1544,7 @@ $("settingsForm")
         ) {
 
           errorMessage =
-            "Your admin login session has expired. " +
-            "Please sign in with Google again.";
+            "Your Firebase admin session has expired. Please sign in again.";
 
         }
 
