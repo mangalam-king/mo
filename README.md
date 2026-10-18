@@ -9,10 +9,6 @@ Students log in with:
 
 Successful login opens `dashboard.html`.
 
-## Admin
-Fixed admin login:
-- Username: `Msadmin`
-- Password: `@131313`
 
 The admin panel reads/writes Firestore registrations, results and announcements.
 
