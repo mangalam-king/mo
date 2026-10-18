@@ -117,41 +117,26 @@
 
 
       <p class="muted">
-
-        Use an authorized Google account
-        to access the administration panel.
-
+        Enter your administrator username and password to continue.
       </p>
 
+      <form id="adminLoginForm">
+        <label>
+          Username
+          <input id="adminUsername" name="username" type="text" autocomplete="username" required>
+        </label>
+        <br>
+        <label>
+          Password
+          <input id="adminPassword" name="password" type="password" autocomplete="current-password" required>
+        </label>
+        <br>
+        <button class="btn primary" style="width:100%" type="submit">
+          Sign In
+        </button>
+      </form>
 
-      <button
-        id="googleLogin"
-        class="btn primary"
-        style="width:100%"
-        type="button"
-      >
-
-        Continue with Google
-
-      </button>
-
-
-      <div id="authMsg"></div>
-
-
-      <p
-        class="muted"
-        style="
-          font-size:11px;
-          margin-top:18px;
-        "
-      >
-
-        Admin access is controlled by
-        the email allowlist in
-        <b>admin.js</b>.
-
-      </p>
+      <div id="authMsg" aria-live="polite"></div>
 
     </div>
 

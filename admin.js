@@ -11,285 +11,67 @@ import {
   setDoc,
   deleteDoc,
   addDoc,
-
-  auth,
-  googleProvider,
-  signInWithPopup,
-  signInWithRedirect,
-  getRedirectResult,
-  signOut,
-  onAuthStateChanged
 } from "./firebase.js";
 
 
 // ============================================================
-// ADMIN EMAILS
+// FIXED ADMIN LOGIN
 // ============================================================
-
-const ADMIN_EMAILS = [
-  "mangalamsoni70@gmail.com"
-];
-
+// These credentials are checked in the browser. They are suitable only
+// for a private/demo deployment; they do not create a Firebase Auth session.
+const ADMIN_USERNAME = "Msadmin";
+const ADMIN_PASSWORD = "@131313";
+const ADMIN_SESSION_KEY = "moOlympiadAdminSession";
 
 // ============================================================
 // GLOBAL DATA
 // ============================================================
-
 let regs = [];
-
 
 // ============================================================
 // HELPERS
 // ============================================================
-
 const $ = id => document.getElementById(id);
-
 const esc = value =>
-  String(value ?? "").replace(
-    /[&<>"']/g,
-    char => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#039;"
-    }[char])
-  );
+  String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
+  }[char]));
 
+function showAdmin() {
+  $("loginBox").classList.add("hidden");
+  $("adminPanel").classList.remove("hidden");
+  $("adminUser").textContent = `Signed in as ${ADMIN_USERNAME}`;
+  renderAll();
+}
 
-// ============================================================
-// GOOGLE LOGIN
-// ============================================================
+function showLogin() {
+  $("loginBox").classList.remove("hidden");
+  $("adminPanel").classList.add("hidden");
+}
 
-$("googleLogin").onclick = async () => {
-
-  $("authMsg").innerHTML =
-    '<div class="success">Opening Google sign-in…</div>';
-
-  try {
-
-    await signInWithPopup(
-      auth,
-      googleProvider
-    );
-
-  } catch (e) {
-
-    console.error(
-      "Google sign-in:",
-      e
-    );
-
-    const code = e?.code || "";
-
-    // Popup blocked / closed
-    if (
-      code === "auth/popup-blocked" ||
-      code === "auth/popup-closed-by-user" ||
-      code === "auth/cancelled-popup-request"
-    ) {
-
-      try {
-
-        await signInWithRedirect(
-          auth,
-          googleProvider
-        );
-
-        return;
-
-      } catch (redirectError) {
-
-        console.error(
-          "Redirect login error:",
-          redirectError
-        );
-
-      }
-
-    }
-
-
-    let msg =
-      "Google sign-in failed.";
-
-
-    if (
-      code === "auth/unauthorized-domain"
-    ) {
-
-      msg =
-        "This website domain is not authorized in Firebase. " +
-        "Add your GitHub Pages domain in Firebase Authentication → Settings → Authorized domains.";
-
-    }
-
-    else if (
-      code === "auth/operation-not-allowed"
-    ) {
-
-      msg =
-        "Google sign-in is not enabled. " +
-        "Enable Google under Firebase Authentication → Sign-in method.";
-
-    }
-
-    else if (
-      code === "auth/popup-blocked"
-    ) {
-
-      msg =
-        "Your browser blocked the Google popup. " +
-        "Allow popups for this website and try again.";
-
-    }
-
-    else if (
-      code === "auth/network-request-failed"
-    ) {
-
-      msg =
-        "Network error. Check your internet connection and try again.";
-
-    }
-
-
-    $("authMsg").innerHTML = `
-      <div class="error">
-        ${msg}
-        <br>
-        <small>
-          Error: ${esc(code || e.message || "unknown")}
-        </small>
-      </div>
-    `;
-
+$("adminLoginForm").addEventListener("submit", event => {
+  event.preventDefault();
+  const username = $("adminUsername").value.trim();
+  const password = $("adminPassword").value;
+  if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+    sessionStorage.setItem(ADMIN_SESSION_KEY, "true");
+    $("authMsg").innerHTML = '<div class="success">Login successful.</div>';
+    showAdmin();
+  } else {
+    sessionStorage.removeItem(ADMIN_SESSION_KEY);
+    $("authMsg").innerHTML = '<div class="error">Incorrect username or password.</div>';
   }
-
-};
-
-
-// ============================================================
-// LOGOUT
-// ============================================================
-
-$("logoutBtn").onclick = async () => {
-
-  try {
-
-    await signOut(auth);
-
-  } catch (error) {
-
-    console.error(
-      "Logout error:",
-      error
-    );
-
-  }
-
-};
-
-
-// ============================================================
-// GOOGLE REDIRECT RESULT
-// ============================================================
-
-getRedirectResult(auth).catch(error => {
-
-  if (error) {
-
-    console.error(
-      "Google redirect result:",
-      error
-    );
-
-  }
-
 });
 
+$("logoutBtn").onclick = () => {
+  sessionStorage.removeItem(ADMIN_SESSION_KEY);
+  $("adminLoginForm").reset();
+  $("authMsg").textContent = "You have signed out.";
+  showLogin();
+};
 
-// ============================================================
-// AUTH STATE
-// ============================================================
-
-onAuthStateChanged(
-  auth,
-  async user => {
-
-    // --------------------------------------------------------
-    // NOT LOGGED IN
-    // --------------------------------------------------------
-
-    if (!user) {
-
-      $("loginBox")
-        .classList
-        .remove("hidden");
-
-      $("adminPanel")
-        .classList
-        .add("hidden");
-
-      return;
-
-    }
-
-
-    // --------------------------------------------------------
-    // CHECK ADMIN EMAIL
-    // --------------------------------------------------------
-
-    const email =
-      (user.email || "").toLowerCase();
-
-
-    const allowed =
-      ADMIN_EMAILS
-        .map(x => x.toLowerCase())
-        .includes(email);
-
-
-    if (!allowed) {
-
-      $("authMsg").innerHTML = `
-        <div class="error">
-          Access denied for
-          <b>${esc(user.email)}</b>.
-          <br><br>
-          This Google account is not authorized
-          to access the MO Olympiad Admin Panel.
-        </div>
-      `;
-
-      await signOut(auth);
-
-      return;
-
-    }
-
-
-    // --------------------------------------------------------
-    // ADMIN VERIFIED
-    // --------------------------------------------------------
-
-    $("loginBox")
-      .classList
-      .add("hidden");
-
-    $("adminPanel")
-      .classList
-      .remove("hidden");
-
-
-    $("adminUser").textContent =
-      `Signed in as ${user.email}`;
-
-
-    await renderAll();
-
-  }
-);
+if (sessionStorage.getItem(ADMIN_SESSION_KEY) === "true") showAdmin();
+else showLogin();
 
 
 // ============================================================

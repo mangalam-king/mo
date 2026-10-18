@@ -10,11 +10,13 @@ Students log in with:
 Successful login opens `dashboard.html`.
 
 ## Admin
-Demo admin login remains:
-- Username: admin
-- Password: admin123
+Fixed admin login:
+- Username: `Msadmin`
+- Password: `@131313`
 
 The admin panel reads/writes Firestore registrations, results and announcements.
+
+**Important:** this fixed login is checked in browser JavaScript and does not create a Firebase Authentication session. The supplied `firestore.rules.txt` requires `request.auth != null` for most admin writes, so those writes will be denied under those rules. Do not make the database rules public to work around this on a public site; use a trusted server or Firebase Authentication with proper role checks for production.
 
 ## Firestore collections
 - `registrations`
