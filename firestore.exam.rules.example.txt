@@ -1,0 +1,28 @@
+// EXAMPLE ONLY — review and merge with your existing rules before deployment.
+// This protects answer keys and restricts admin writes, but the current student
+// login (Registration ID in sessionStorage) is NOT a trusted identity. Student
+// access to assignments/submissions needs verified Firebase Auth custom claims.
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null &&
+        request.auth.token.email == 'mangalamsoni70@gmail.com';
+    }
+    match /exams/{examId} {
+      allow read: if true; // exam metadata only; do not put answer keys here
+      allow create, update, delete: if isAdmin();
+    }
+    match /examAssignments/{assignmentId} {
+      allow read, create, update, delete: if isAdmin();
+      // Add student-specific reads only after verified student custom claims exist.
+    }
+    match /examKeys/{keyId} {
+      allow read, create, update, delete: if isAdmin();
+    }
+    match /examSubmissions/{submissionId} {
+      allow read, create, update, delete: if isAdmin();
+      // Student writes/reads must be added through a trusted student identity/backend.
+    }
+  }
+}
