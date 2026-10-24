@@ -49,3 +49,12 @@ After saving, approved applicants see the latest schedule automatically on their
 
 ### Schedule submission fix
 The admin schedule form now validates the date/time/centre, saves directly to `settings/olympiad`, and displays the exact Firebase error if saving fails.
+
+
+## Online test
+The custom Online Exam Manager and custom online-exam pages have been removed. Logged-in students can open the Google Forms test from their student dashboard. The test is hosted by Google Forms; its quiz settings, responses, and grading are managed in Google Forms.
+
+## Automatic marking and one response per student account
+The Google Forms quiz can automatically grade multiple-choice questions when each question has its correct answer selected and point value set. To configure the existing form (without creating a duplicate), open `google-form-settings.gs`, copy its code into the Apps Script project, run `configureExistingMOOlympiadQuiz`, and approve the requested Google permissions. This enables quiz mode, collects respondent email, and limits responses to one per Google account.
+
+**Important:** one response is enforced by Google account, not by the website's Registration ID. Students need to sign in to Google to submit. A student could still open the public form directly if they have its URL, so this is not a secure link tied to the website login. The dashboard only displays the test button to students whose registration status is `Approved`. Check all 100 questions in the form editor and confirm each answer key/point value before publishing.
