@@ -1,5 +1,20 @@
-MO OLYMPIAD — ONLINE EXAM FEATURE SETUP
-=======================================
+MO OLYMPIAD — BUILT-IN ONLINE EXAM SETUP
+========================================
+
+The exam is part of the website and uses Firebase/Firestore; it does not need Google Forms or Apps Script. The Online Exam Manager includes a built-in Class 7 mixed Olympiad bank of 100 multiple-choice questions.
+
+ADMIN WORKFLOW
+1. Sign in on admin.html with the authorized admin account.
+2. Open Online Exam Manager. Create an exam, set start/end time, duration, marks, and choose Live now or Scheduled. Keep one attempt enabled (the code enforces singleAttempt=true for new exams).
+3. In Assign Questions, select the exam and choose “One question set → selected students”.
+4. Enter the exact student Registration ID(s), comma-separated for multiple students.
+5. Click “Load built-in Class 7 bank (100 questions)”, then “Enable exam for selected student(s)”.
+6. Student signs in as usual, opens Student Dashboard → Online Exam, and takes the assigned exam.
+7. Submission and status appear in the admin exam manager; click Grade or Grade pending submissions to calculate marks, then Publish results to show results to students.
+
+ONE-ATTEMPT BEHAVIOUR
+The website uses a deterministic submission document per exam/student and blocks reopening submitted attempts in the student interface. An administrator can still use the explicit Reopen attempt control if a retake is intentionally authorized.
+
 
 New files:
 - exam-admin.html / exam-admin.js: exam creation, individual assignments, shared-set assignments, bulk per-student assignments, exam controls, attempt monitoring, grading, CSV export.

@@ -41,34 +41,10 @@ const esc = value =>
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
   }[char]));
 
-// Google Forms results dashboard URL: paste the deployed Apps Script web-app URL here.
-const GOOGLE_RESULTS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyZFYP6DaKfk3O1ukssdEfyxUATEjfTOwy_5ZYBZaghPvp56ol0IzUpGNzTs_HGCUL1wg/exec";
-
-function setupGoogleFormResultsPanel() {
-  const url = GOOGLE_RESULTS_WEB_APP_URL.trim();
-  const message = $("googleResultsSetupMessage");
-  const open = $("openGoogleResults");
-  const wrap = $("googleResultsFrameWrap");
-  const frame = $("googleResultsFrame");
-  if (!url || url.includes("PASTE_YOUR_GOOGLE_APPS_SCRIPT")) {
-    if (message) message.style.display = "block";
-    if (open) { open.href = "#"; open.onclick = event => { event.preventDefault(); alert("First deploy google-form-results.gs as a web app, then paste its URL into GOOGLE_RESULTS_WEB_APP_URL in admin.js."); }; }
-    if (wrap) wrap.style.display = "none";
-    return;
-  }
-  if (message) message.style.display = "none";
-  if (open) open.href = url;
-  if (wrap) wrap.style.display = "block";
-  if (frame && frame.src !== url) frame.src = url;
-  const reload = $("reloadGoogleResults");
-  if (reload) reload.onclick = () => { if (frame) frame.src = url + (url.includes("?") ? "&" : "?") + "refresh=" + Date.now(); };
-}
-
 function showAdmin() {
   $("loginBox").classList.add("hidden");
   $("adminPanel").classList.remove("hidden");
   $("adminUser").textContent = `Signed in as ${ADMIN_USERNAME}`;
-  setupGoogleFormResultsPanel();
   renderAll();
 }
 
