@@ -188,6 +188,29 @@
 
 
       <!-- ================================================
+           GOOGLE FORMS LIVE TEST RESPONSES
+      ================================================= -->
+      <section class="section-card" id="googleFormResultsSection" style="margin:20px 0;padding:20px;border-radius:16px;background:var(--card, #fff);border:1px solid #e5e7eb;">
+        <div style="display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;">
+          <div>
+            <h2 style="margin:0 0 6px;">📝 Online Test Submissions</h2>
+            <p class="muted" style="margin:0;">Live responses and automatically calculated scores from your Google Forms quiz.</p>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <a class="btn primary" id="openGoogleResults" href="#" target="_blank" rel="noopener">Open Results Dashboard</a>
+            <button class="btn ghost" id="reloadGoogleResults" type="button">Reload</button>
+          </div>
+        </div>
+        <p id="googleResultsSetupMessage" class="muted" style="margin-top:14px;">
+          Connected to your Google Forms results dashboard. Open it in a new tab if the embedded view asks you to sign in.
+        </p>
+        <div id="googleResultsFrameWrap" style="display:none;margin-top:16px;">
+          <iframe id="googleResultsFrame" title="Google Forms test results" style="width:100%;height:620px;border:1px solid #e5e7eb;border-radius:12px;background:white;" loading="lazy" referrerpolicy="no-referrer"></iframe>
+          <p class="muted" style="font-size:13px;">If Google blocks the embedded view, use “Open Results Dashboard” to view it in a new tab. The dashboard requires the Google account that owns the script.</p>
+        </div>
+      </section>
+
+      <!-- ================================================
            STATISTICS
       ================================================= -->
 
