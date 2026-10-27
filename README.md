@@ -51,4 +51,7 @@ After saving, approved applicants see the latest schedule automatically on their
 The admin schedule form now validates the date/time/centre, saves directly to `settings/olympiad`, and displays the exact Firebase error if saving fails.
 
 
-Built-in online exam: open exam-admin.html from the admin panel, create an exam, select student Registration IDs, click “Load built-in Class 7 bank (100 questions)”, and enable the exam. Student exams and results use Firestore, not Google Forms. Review ONLINE_EXAM_SETUP.md and firestore.exam.rules.example.txt before production use.
+Built-in online exam: open exam-admin.html from the admin panel, create an exam, select student Registration IDs, click “Load built-in Class 3–9 bank (100 questions)”, and enable the exam. Student exams and results use Firestore, not Google Forms. Review ONLINE_EXAM_SETUP.md and firestore.exam.rules.example.txt before production use.
+
+
+Built-in question library: the Online Exam Manager lets admins select Classes 3, 4, 5, 6, 7, 8 or 9 and load 100 mixed multiple-choice questions for that class. Review the questions and selected class before assigning the bank to students.

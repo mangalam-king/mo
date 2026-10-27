@@ -1,4 +1,4 @@
-import { BUILT_IN_QUESTIONS } from './question-bank.js';
+import { BUILT_IN_QUESTION_BANKS } from './question-bank.js';
 import {db,collection,getDocs,getDoc,doc,setDoc,addDoc,updateDoc,deleteDoc,auth,onAuthStateChanged} from './firebase.js';
 const $=id=>document.getElementById(id); const ADMIN='mangalamsoni70@gmail.com'; let exams=[], assignments=[], submissions=[]; let ready=false;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -11,9 +11,12 @@ function userEmail(){return auth.currentUser?.email||ADMIN}
 
 const builtInButton = $('loadBuiltInBank');
 if (builtInButton) builtInButton.onclick = () => {
+  const grade = String($('builtInClass').value || '7');
+  const bank = BUILT_IN_QUESTION_BANKS[grade];
+  if (!bank || !bank.length) { msg('assignMsg', `No built-in question bank found for Class ${grade}.`); return; }
   $('assignMode').value = 'many';
-  $('questionsJson').value = JSON.stringify(BUILT_IN_QUESTIONS.map(({id,text,options,correctIndex,explanation}) => ({id,text,options,correctIndex,explanation})), null, 2);
-  $('assignMsg').innerHTML = `<p class="success">Loaded ${BUILT_IN_QUESTIONS.length} built-in Class 7 questions. Enter one or more student Registration IDs, choose the exam, then click Enable exam for selected student(s).</p>`;
+  $('questionsJson').value = JSON.stringify(bank.map(({id,text,options,correctIndex,explanation}) => ({id,text,options,correctIndex,explanation})), null, 2);
+  $('assignMsg').innerHTML = `<p class="success">Loaded ${bank.length} built-in Class ${esc(grade)} questions. Enter one or more student Registration IDs, choose the exam, then click Enable exam for selected student(s).</p>`;
   $('questionsJson').scrollIntoView({behavior:'smooth',block:'center'});
 };
 $('assignBtn').onclick=async()=>{try{const examId=$('assignExam').value;if(!examId)throw Error('Create/select an exam first.');const mode=$('assignMode').value;const raw=JSON.parse($('questionsJson').value||'[]');let batch=[];if(mode==='bulk'){if(!Array.isArray(raw)||!raw.length)throw Error('Bulk JSON must be a non-empty array.');batch=raw.map(x=>({studentId:String(x.studentId||'').trim(),questions:validateQuestions(x.questions)}));if(batch.some(x=>!x.studentId))throw Error('Every bulk item needs studentId.')}else{const ids=$('studentIds').value.split(',').map(x=>x.trim()).filter(Boolean);if(!ids.length)throw Error('Enter at least one Registration ID.');const qs=validateQuestions(raw);batch=ids.map(studentId=>({studentId,questions:qs}))}let count=0;for(const item of batch){const aid=studentDocId(examId,item.studentId);const publicQuestions=item.questions.map(({id,text,options})=>({id,text,options}));const keys=item.questions.map(({id,correctIndex,explanation})=>({id,correctIndex,explanation}));await setDoc(doc(db,'examAssignments',aid),{examId,studentId:item.studentId,questions:publicQuestions,assignedAt:new Date().toISOString(),assignedBy:userEmail()});await setDoc(doc(db,'examKeys',aid),{examId,studentId:item.studentId,keys,updatedAt:new Date().toISOString()});count++}msg('assignMsg',`Saved ${count} student assignment(s).`,true);await refresh()}catch(err){console.error(err);msg('assignMsg',err.message||'Could not save assignment. Check Firestore rules.')}};

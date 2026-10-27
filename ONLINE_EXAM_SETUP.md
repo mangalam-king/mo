@@ -8,7 +8,7 @@ ADMIN WORKFLOW
 2. Open Online Exam Manager. Create an exam, set start/end time, duration, marks, and choose Live now or Scheduled. Keep one attempt enabled (the code enforces singleAttempt=true for new exams).
 3. In Assign Questions, select the exam and choose “One question set → selected students”.
 4. Enter the exact student Registration ID(s), comma-separated for multiple students.
-5. Click “Load built-in Class 7 bank (100 questions)”, then “Enable exam for selected student(s)”.
+5. Click “Load built-in Class 3–9 bank (100 questions)”, then “Enable exam for selected student(s)”.
 6. Student signs in as usual, opens Student Dashboard → Online Exam, and takes the assigned exam.
 7. Submission and status appear in the admin exam manager; click Grade or Grade pending submissions to calculate marks, then Publish results to show results to students.
 
@@ -42,3 +42,6 @@ IMPORTANT SECURITY LIMITATION
 The existing student login stores a Registration ID in sessionStorage; it does not create a verified Firebase Authentication identity. Firestore rules cannot securely distinguish students based on sessionStorage. Therefore, do NOT enable public reads on examAssignments or examSubmissions for a real live exam: a student could potentially enumerate another student's assignment/submission. This client-only version deliberately keeps answer keys separate, but secure per-student access and trusted automatic grading require a verified student auth/custom-token flow plus a trusted backend (for example, a callable Cloud Function). The exam UI and admin grading workflow are included, but do not describe this as anti-cheat-proof or production-secure until that backend is deployed.
 
 The existing Firestore rules in firestore.rules.txt have broad reads/writes and are not suitable for a real exam. Review them before deployment; do not blindly replace rules without matching the rest of your app's collections and features.
+
+
+Built-in question library: the Online Exam Manager lets admins select Classes 3, 4, 5, 6, 7, 8 or 9 and load 100 mixed multiple-choice questions for that class. Review the questions and selected class before assigning the bank to students.
